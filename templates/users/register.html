@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Register - UK Leather Jackets{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-user-plus"></i> Create Account
+                    </h2>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-user-plus"></i> Register
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <hr class="my-4">
+                    
+                    <p class="text-center mb-0">
+                        Already have an account? 
+                        <a href="{% url 'users:login' %}">Login here</a>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Benefits Card -->
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h6>Benefits of Creating an Account:</h6>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Faster checkout</li>
+                        <li><i class="fas fa-check text-success"></i> Order history and tracking</li>
+                        <li><i class="fas fa-check text-success"></i> Exclusive offers</li>
+                        <li><i class="fas fa-check text-success"></i> Wishlist and saved items</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

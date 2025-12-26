@@ -1,0 +1,359 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Checkout - UK Leather Jackets{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4"><i class="fas fa-shopping-cart"></i> Checkout</h1>
+    
+    <div class="row">
+        <!-- Left Column: Checkout Form -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-shipping-fast"></i> Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="checkout-form">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.full_name.label_tag }}
+                                {{ form.full_name }}
+                                {% if form.full_name.errors %}
+                                    <div class="text-danger small">{{ form.full_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.email.label_tag }}
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger small">{{ form.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.phone.label_tag }}
+                            {{ form.phone }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small">{{ form.phone.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.address_line_1.label_tag }}
+                            {{ form.address_line_1 }}
+                            {% if form.address_line_1.errors %}
+                                <div class="text-danger small">{{ form.address_line_1.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.address_line_2.label_tag }}
+                            {{ form.address_line_2 }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.city.label_tag }}
+                                {{ form.city }}
+                                {% if form.city.errors %}
+                                    <div class="text-danger small">{{ form.city.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                {{ form.county.label_tag }}
+                                {{ form.county }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.postcode.label_tag }}
+                            {{ form.postcode }}
+                            {% if form.postcode.errors %}
+                                <div class="text-danger small">{{ form.postcode.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3"><i class="fas fa-truck"></i> Select Shipping Method</h5>
+                        
+                        {% for option in shipping_options %}
+                        <div class="form-check shipping-option mb-3 p-3 border rounded {% if forloop.first %}border-primary{% endif %}">
+                            <input class="form-check-input" type="radio" name="shipping_method" 
+                                   id="shipping_{{ option.method }}" value="{{ option.method }}"
+                                   {% if forloop.first %}checked{% endif %}
+                                   data-cost="{{ option.cost }}"
+                                   data-total="{{ option.total }}">
+                            <label class="form-check-label w-100" for="shipping_{{ option.method }}">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>{{ option.label|slice:":option.label|length-20" }}</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock"></i> {{ option.delivery_time }}
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <strong class="text-primary">
+                                            {% if option.cost == 0 %}
+                                                <span class="badge bg-success">FREE</span>
+                                            {% else %}
+                                                £{{ option.cost }}
+                                            {% endif %}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        {% endfor %}
+                        
+                        <hr>
+                        
+                        <h5 class="mb-3"><i class="fas fa-credit-card"></i> Select Payment Method</h5>
+                        
+                        <div class="form-check payment-option mb-3 p-3 border rounded border-primary">
+                            <input class="form-check-input" type="radio" name="payment_method" 
+                                   id="payment_full" value="full" checked>
+                            <label class="form-check-label w-100" for="payment_full">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong><i class="fas fa-credit-card text-primary"></i> Pay Full Amount Online</strong>
+                                        <br>
+                                        <small class="text-muted">Pay complete order amount securely via Credit/Debit Card</small>
+                                        <br>
+                                        <small class="text-success"><i class="fas fa-check-circle"></i> Fastest processing • Immediate confirmation</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-primary">Recommended</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check payment-option mb-3 p-3 border rounded">
+                            <input class="form-check-input" type="radio" name="payment_method" 
+                                   id="payment_partial" value="partial">
+                            <label class="form-check-label w-100" for="payment_partial">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong><i class="fas fa-hand-holding-usd text-success"></i> Pay 50% Now, 50% on Delivery</strong>
+                                        <br>
+                                        <small class="text-muted">Pay half amount now via card, remaining half in cash on delivery</small>
+                                        <br>
+                                        <small class="text-info"><i class="fas fa-info-circle"></i> Pay now: <span id="partial-amount">£{{ shipping_options.0.total|floatformat:2 }}</span> • On delivery: <span id="remaining-amount">£{{ shipping_options.0.total|floatformat:2 }}</span> (cash)</small>
+                                    </div>
+                                    <div>
+                                        <span class="badge bg-success">Flexible</span>
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="fas fa-shield-alt"></i> <strong>Secure Payment</strong><br>
+                            <small>All online payments are processed securely through Stripe. We never store your card details.</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check-circle"></i> Proceed to Payment
+                            </button>
+                            <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Cart
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: Order Summary -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-receipt"></i> Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Cart Items -->
+                    {% for item in cart %}
+                    <div class="d-flex align-items-center mb-3 pb-3 border-bottom">
+                        {% if item.product.main_image %}
+                            <img src="{{ item.product.main_image.url }}" 
+                                 alt="{{ item.product.name }}"
+                                 class="me-3 rounded"
+                                 style="width: 60px; height: 60px; object-fit: cover;">
+                        {% else %}
+                            <div class="me-3 bg-light rounded d-flex align-items-center justify-content-center"
+                                 style="width: 60px; height: 60px;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                        {% endif %}
+                        <div class="flex-grow-1">
+                            <h6 class="mb-0">{{ item.product.name }}</h6>
+                            <small class="text-muted">Size: {{ item.size }} | Qty: {{ item.quantity }}</small>
+                            <div class="fw-bold">£{{ item.total_price }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <!-- Price Breakdown -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Subtotal:</span>
+                            <span>£{{ subtotal }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping:</span>
+                            <span id="shipping-cost" class="text-success">
+                                {% if shipping_options.0.cost == 0 %}
+                                    FREE
+                                {% else %}
+                                    £{{ shipping_options.0.cost }}
+                                {% endif %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>VAT (20%):</span>
+                            <span id="vat-amount">£{{ shipping_options.0.total|floatformat:2 }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-2">
+                            <strong class="fs-5">Total:</strong>
+                            <strong class="fs-5 text-success" id="total-amount">
+                                £{{ shipping_options.0.total }}
+                            </strong>
+                        </div>
+                        
+                        <!-- Payment Breakdown -->
+                        <div id="payment-breakdown" class="mt-3 p-3 bg-light rounded" style="display: none;">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span><strong>Pay Online Now:</strong></span>
+                                <span class="text-primary" id="pay-now-amount"><strong>£{{ shipping_options.0.total|floatformat:2 }}</strong></span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span><strong>Pay on Delivery:</strong></span>
+                                <span class="text-success" id="pay-later-amount"><strong>£0.00</strong></span>
+                            </div>
+                        </div>
+                        
+                        <small class="text-muted d-block mt-2">
+                            <i class="fas fa-info-circle"></i> Estimated delivery: 
+                            <span id="delivery-time">{{ shipping_options.0.delivery_time }}</span>
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Update totals when shipping method changes
+document.querySelectorAll('input[name="shipping_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        const cost = this.dataset.cost;
+        const total = this.dataset.total;
+        const deliveryTime = this.closest('.shipping-option').querySelector('.text-muted').textContent.trim();
+        
+        // Update shipping cost
+        const shippingCostEl = document.getElementById('shipping-cost');
+        if (cost == '0.00') {
+            shippingCostEl.innerHTML = '<span class="badge bg-success">FREE</span>';
+        } else {
+            shippingCostEl.textContent = '£' + cost;
+        }
+        
+        // Update total
+        const totalFloat = parseFloat(total);
+        document.getElementById('total-amount').textContent = '£' + totalFloat.toFixed(2);
+        
+        // Update partial payment amounts
+        updatePaymentBreakdown(totalFloat);
+        
+        // Update delivery time
+        document.getElementById('delivery-time').textContent = deliveryTime.replace('⏱ ', '');
+        
+        // Highlight selected option
+        document.querySelectorAll('.shipping-option').forEach(opt => {
+            opt.classList.remove('border-primary');
+        });
+        this.closest('.shipping-option').classList.add('border-primary');
+    });
+});
+
+// Update payment breakdown
+function updatePaymentBreakdown(total) {
+    const halfAmount = (total / 2).toFixed(2);
+    document.getElementById('partial-amount').textContent = '£' + halfAmount;
+    document.getElementById('remaining-amount').textContent = '£' + halfAmount;
+    
+    const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+    if (paymentMethod === 'partial') {
+        document.getElementById('pay-now-amount').innerHTML = '<strong>£' + halfAmount + '</strong>';
+        document.getElementById('pay-later-amount').innerHTML = '<strong>£' + halfAmount + ' (cash)</strong>';
+    } else {
+        document.getElementById('pay-now-amount').innerHTML = '<strong>£' + total.toFixed(2) + '</strong>';
+        document.getElementById('pay-later-amount').innerHTML = '<strong>£0.00</strong>';
+    }
+}
+
+// Highlight selected payment method and show/hide breakdown
+document.querySelectorAll('input[name="payment_method"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+        document.querySelectorAll('.payment-option').forEach(opt => {
+            opt.classList.remove('border-success', 'border-primary');
+        });
+        
+        const breakdownDiv = document.getElementById('payment-breakdown');
+        const total = parseFloat(document.getElementById('total-amount').textContent.replace('£', ''));
+        
+        if (this.value === 'partial') {
+            this.closest('.payment-option').classList.add('border-success');
+            breakdownDiv.style.display = 'block';
+            updatePaymentBreakdown(total);
+        } else {
+            this.closest('.payment-option').classList.add('border-primary');
+            breakdownDiv.style.display = 'none';
+        }
+    });
+});
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const total = parseFloat(document.getElementById('total-amount').textContent.replace('£', ''));
+    updatePaymentBreakdown(total);
+});
+</script>
+
+<style>
+.shipping-option, .payment-option {
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.shipping-option:hover, .payment-option:hover {
+    background-color: #f8f9fa;
+}
+
+.shipping-option.border-primary {
+    background-color: #e7f1ff;
+}
+
+.payment-option.border-primary {
+    background-color: #e7f1ff;
+}
+
+.payment-option.border-success {
+    background-color: #d4edda;
+}
+
+.form-check-input:checked ~ .form-check-label {
+    font-weight: 500;
+}
+</style>
+{% endblock %}

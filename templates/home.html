@@ -1,0 +1,147 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - UK Leather Jackets{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="hero-section" style="background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1551028719-00167b16eac5?w=1600') center/cover; height: 500px; color: white;">
+    <div class="container h-100 d-flex align-items-center justify-content-center text-center">
+        <div>
+            <h1 class="display-3 fw-bold mb-4">Premium Leather Jackets</h1>
+            <p class="lead mb-4">Handcrafted Quality | UK Made | Timeless Style</p>
+            <a href="{% url 'products:product_list' %}" class="btn btn-primary btn-lg">
+                Shop Now <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Categories Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'products:product_list' %}?gender=M" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <i class="fas fa-male fa-4x mb-3" style="color: #2c3e50;"></i>
+                            <h3>Men's Collection</h3>
+                            <p class="text-muted">Classic and contemporary styles</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'products:product_list' %}?gender=W" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <i class="fas fa-female fa-4x mb-3" style="color: #8b4513;"></i>
+                            <h3>Women's Collection</h3>
+                            <p class="text-muted">Elegant and stylish designs</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-md-4 mb-4">
+                <a href="{% url 'products:product_list' %}" class="text-decoration-none">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body p-4">
+                            <i class="fas fa-star fa-4x mb-3" style="color: #d4af37;"></i>
+                            <h3>New Arrivals</h3>
+                            <p class="text-muted">Latest additions to our collection</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Featured Products</h2>
+        
+        {% if featured_products %}
+        <div class="row">
+            {% for product in featured_products %}
+            <div class="col-md-3 col-sm-6 mb-4">
+                <div class="card product-card border-0 shadow-sm">
+                    <a href="{{ product.get_absolute_url }}">
+                        {% if product.main_image %}
+                            <img src="{{ product.main_image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                        {% else %}
+                            <img src="https://via.placeholder.com/300x300?text=Leather+Jacket" class="card-img-top product-image" alt="{{ product.name }}">
+                        {% endif %}
+                    </a>
+                    <div class="card-body">
+                        {% if product.get_discount_percentage %}
+                        <span class="discount-badge">-{{ product.get_discount_percentage }}% OFF</span>
+                        {% endif %}
+                        
+                        <h5 class="card-title mt-2">
+                            <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark">
+                                {{ product.name }}
+                            </a>
+                        </h5>
+                        
+                        <p class="text-muted small">{{ product.color }} | {{ product.material }}</p>
+                        
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                {% if product.discount_price %}
+                                    <span class="original-price">£{{ product.price }}</span>
+                                    <span class="price d-block">£{{ product.discount_price }}</span>
+                                {% else %}
+                                    <span class="price">£{{ product.price }}</span>
+                                {% endif %}
+                            </div>
+                            <a href="{{ product.get_absolute_url }}" class="btn btn-sm btn-primary">
+                                View Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="text-center text-muted">No featured products available at the moment.</p>
+        {% endif %}
+        
+        <div class="text-center mt-4">
+            <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary btn-lg">
+                View All Products <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-3">
+                <i class="fas fa-shipping-fast fa-3x mb-3" style="color: #8b4513;"></i>
+                <h5>Free Shipping</h5>
+                <p class="text-muted">On orders over £50</p>
+            </div>
+            <div class="col-md-3 mb-3">
+                <i class="fas fa-undo fa-3x mb-3" style="color: #8b4513;"></i>
+                <h5>Easy Returns</h5>
+                <p class="text-muted">30-day return policy</p>
+            </div>
+            <div class="col-md-3 mb-3">
+                <i class="fas fa-shield-alt fa-3x mb-3" style="color: #8b4513;"></i>
+                <h5>Secure Payment</h5>
+                <p class="text-muted">100% secure transactions</p>
+            </div>
+            <div class="col-md-3 mb-3">
+                <i class="fas fa-headset fa-3x mb-3" style="color: #8b4513;"></i>
+                <h5>24/7 Support</h5>
+                <p class="text-muted">Dedicated customer service</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

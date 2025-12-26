@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Payment - Order #{{ order.id }} - UK Leather Jackets{% endblock %}
+
+{% block extra_css %}
+<style>
+    .payment-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    #card-element {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        padding: 12px;
+        background: white;
+    }
+    
+    #card-errors {
+        color: #dc3545;
+        margin-top: 10px;
+    }
+    
+    .stripe-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="payment-form">
+                <h1 class="mb-4"><i class="fas fa-credit-card"></i> Secure Payment</h1>
+                
+                {% if order.payment_method == 'partial' %}
+                <div class="alert alert-info mb-4">
+                    <h5><i class="fas fa-info-circle"></i> Partial Payment</h5>
+                    <p class="mb-1"><strong>Order #{{ order.id }}</strong></p>
+                    <p class="mb-1">Total Order Value: £{{ order.total_amount }}</p>
+                    <hr>
+                    <p class="mb-1"><strong>Paying Now (50%):</strong> £{{ payment_amount }}</p>
+                    <p class="mb-0"><strong>Due on Delivery (50%):</strong> £{{ order.remaining_amount }} (cash)</p>
+                </div>
+                {% else %}
+                <div class="alert alert-info mb-4">
+                    <h5><i class="fas fa-info-circle"></i> Order Summary</h5>
+                    <p class="mb-1"><strong>Order #{{ order.id }}</strong></p>
+                    <p class="mb-1">Items: {{ order.items.count }}</p>
+                    <p class="mb-0"><strong>Total: £{{ order.total_amount }}</strong></p>
+                </div>
+                {% endif %}
+                
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-lock"></i> Enter Card Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="payment-form">
+                            {% csrf_token %}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Card Details</label>
+                                <div id="card-element">
+                                    <!-- Stripe Card Element will be inserted here -->
+                                </div>
+                                <div id="card-errors" role="alert"></div>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button id="submit-button" class="btn btn-success btn-lg">
+                                    <i class="fas fa-lock"></i> Pay £{{ payment_amount }}
+                                </button>
+                                <a href="{% url 'orders:order_detail' order.id %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left"></i> Back to Order
+                                </a>
+                            </div>
+                        </form>
+                        
+                        <div class="stripe-badge">
+                            <i class="fab fa-cc-stripe fa-2x"></i>
+                            <small>Secured by Stripe</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Details -->
+                <div class="card shadow-sm">
+                    <div class="card-header">
+                        <h5 class="mb-0">Order Items</h5>
+                    </div>
+                    <div class="card-body">
+                        {% for item in order.items.all %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>{{ item.product.name }} ({{ item.size }}) x {{ item.quantity }}</span>
+                            <span>£{{ item.get_total_price }}</span>
+                        </div>
+                        {% endfor %}
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Subtotal:</span>
+                            <span>£{{ order.subtotal }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Shipping:</span>
+                            <span>£{{ order.shipping_cost }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>VAT (20%):</span>
+                            <span>£{{ order.vat }}</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <strong>Total Order:</strong>
+                            <strong>£{{ order.total_amount }}</strong>
+                        </div>
+                        
+                        {% if order.payment_method == 'partial' %}
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <div class="d-flex justify-content-between text-primary">
+                                <strong>Paying Now:</strong>
+                                <strong>£{{ payment_amount }}</strong>
+                            </div>
+                            <div class="d-flex justify-content-between text-success">
+                                <strong>Due on Delivery:</strong>
+                                <strong>£{{ order.remaining_amount }}</strong>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="alert alert-warning mt-4">
+                    <strong><i class="fas fa-shield-alt"></i> Test Mode</strong><br>
+                    <small>Use test card: <code>4242 4242 4242 4242</code> • Expiry: Any future date • CVC: Any 3 digits</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    // Initialize Stripe
+    const stripe = Stripe('{{ stripe_public_key }}');
+    const elements = stripe.elements();
+    
+    // Create card element
+    const cardElement = elements.create('card', {
+        style: {
+            base: {
+                fontSize: '16px',
+                color: '#32325d',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                '::placeholder': {
+                    color: '#aab7c4'
+                }
+            },
+            invalid: {
+                color: '#dc3545',
+                iconColor: '#dc3545'
+            }
+        }
+    });
+    
+    cardElement.mount('#card-element');
+    
+    // Handle validation errors
+    cardElement.on('change', function(event) {
+        const displayError = document.getElementById('card-errors');
+        if (event.error) {
+            displayError.textContent = event.error.message;
+        } else {
+            displayError.textContent = '';
+        }
+    });
+    
+    // Handle form submission
+    const form = document.getElementById('payment-form');
+    const submitButton = document.getElementById('submit-button');
+    
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        // Disable button and show loading
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Payment...';
+        
+        try {
+            // Get client secret from server
+            const response = await fetch('{% url "orders:payment" order.id %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            });
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Confirm payment with Stripe
+            const result = await stripe.confirmCardPayment(data.clientSecret, {
+                payment_method: {
+                    card: cardElement,
+                    billing_details: {
+                        name: '{{ order.full_name }}',
+                        email: '{{ order.email }}'
+                    }
+                }
+            });
+            
+            if (result.error) {
+                // Show error
+                const errorElement = document.getElementById('card-errors');
+                errorElement.textContent = result.error.message;
+                
+                // Re-enable button
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-lock"></i> Pay £{{ payment_amount }}';
+            } else {
+                // Payment successful
+                if (result.paymentIntent.status === 'succeeded') {
+                    // Show success message
+                    submitButton.innerHTML = '<i class="fas fa-check-circle"></i> Payment Successful!';
+                    submitButton.classList.remove('btn-success');
+                    submitButton.classList.add('btn-primary');
+                    
+                    // Redirect after short delay
+                    setTimeout(function() {
+                        window.location.href = '{% url "orders:order_detail" order.id %}?payment=success';
+                    }, 1500);
+                }
+            }
+        } catch (error) {
+            const errorElement = document.getElementById('card-errors');
+            errorElement.textContent = error.message;
+            
+            // Re-enable button
+            submitButton.disabled = false;
+            submitButton.innerHTML = '<i class="fas fa-lock"></i> Pay £{{ payment_amount }}';
+        }
+    });
+</script>
+{% endblock %}

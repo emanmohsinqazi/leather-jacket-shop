@@ -1,0 +1,293 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - UK Leather Jackets{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}">Products</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'products:product_list' %}?category={{ product.category.slug }}">{{ product.category.name }}</a></li>
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+    
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6">
+            <div class="card border-0">
+                {% if product.main_image %}
+                    <img src="{{ product.main_image.url }}" class="card-img-top" alt="{{ product.name }}" id="mainImage">
+                {% else %}
+                    <img src="https://via.placeholder.com/600x600?text={{ product.name }}" class="card-img-top" alt="{{ product.name }}" id="mainImage">
+                {% endif %}
+            </div>
+            
+            <!-- Thumbnail Images -->
+            <div class="row mt-3">
+                {% if product.main_image %}
+                <div class="col-4">
+                    <img src="{{ product.main_image.url }}" class="img-thumbnail" 
+                         onclick="document.getElementById('mainImage').src=this.src" 
+                         style="cursor: pointer;" alt="{{ product.name }}">
+                </div>
+                {% endif %}
+                {% if product.image_2 %}
+                <div class="col-4">
+                    <img src="{{ product.image_2.url }}" class="img-thumbnail" 
+                         onclick="document.getElementById('mainImage').src=this.src" 
+                         style="cursor: pointer;" alt="{{ product.name }}">
+                </div>
+                {% endif %}
+                {% if product.image_3 %}
+                <div class="col-4">
+                    <img src="{{ product.image_3.url }}" class="img-thumbnail" 
+                         onclick="document.getElementById('mainImage').src=this.src" 
+                         style="cursor: pointer;" alt="{{ product.name }}">
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Product Details -->
+        <div class="col-md-6">
+            <h1 class="mb-3">{{ product.name }}</h1>
+            
+            <!-- Rating -->
+            {% if average_rating %}
+            <div class="mb-3">
+                {% for i in "12345" %}
+                    {% if forloop.counter <= average_rating %}
+                        <i class="fas fa-star text-warning"></i>
+                    {% else %}
+                        <i class="far fa-star text-warning"></i>
+                    {% endif %}
+                {% endfor %}
+                <span class="ms-2">({{ reviews.count }} reviews)</span>
+            </div>
+            {% endif %}
+            
+            <!-- Price -->
+            <div class="mb-4">
+                {% if product.discount_price %}
+                    <span class="original-price h5 text-muted me-2">£{{ product.price }}</span>
+                    <span class="price h3 text-danger">£{{ product.discount_price }}</span>
+                    <span class="discount-badge ms-2">SAVE {{ product.get_discount_percentage }}%</span>
+                {% else %}
+                    <span class="price h3">£{{ product.price }}</span>
+                {% endif %}
+            </div>
+            
+            <!-- Product Info -->
+            <div class="card bg-light mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <p class="mb-2"><strong>Material:</strong> {{ product.material }}</p>
+                            <p class="mb-2"><strong>Color:</strong> {{ product.color }}</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="mb-2"><strong>Gender:</strong> {{ product.get_gender_display }}</p>
+                            <p class="mb-2">
+                                <strong>Stock:</strong> 
+                                {% if product.is_in_stock %}
+                                    <span class="text-success">In Stock ({{ product.stock_quantity }})</span>
+                                {% else %}
+                                    <span class="text-danger">Out of Stock</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Add to Cart Form -->
+            {% if product.is_in_stock %}
+            <form method="post" action="{% url 'cart:cart_add' product.id %}">
+                {% csrf_token %}
+                
+                <!-- Size Selection -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Select Size:</strong></label>
+                    <div class="btn-group d-flex" role="group">
+                        {% for size in available_sizes %}
+                        <input type="radio" class="btn-check" name="size" id="size{{ size }}" value="{{ size }}" required>
+                        <label class="btn btn-outline-primary" for="size{{ size }}">{{ size }}</label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- Quantity -->
+                <div class="mb-3">
+                    <label class="form-label"><strong>Quantity:</strong></label>
+                    <input type="number" name="quantity" value="1" min="1" max="10" class="form-control" style="width: 100px;">
+                </div>
+                
+                <!-- Buttons -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary">
+                        <i class="far fa-heart"></i> Add to Wishlist
+                    </button>
+                </div>
+            </form>
+            {% else %}
+            <div class="alert alert-danger">
+                <i class="fas fa-exclamation-circle"></i> This product is currently out of stock.
+            </div>
+            {% endif %}
+            
+            <!-- Product Features -->
+            <div class="mt-4">
+                <h5>Product Features:</h5>
+                <ul class="list-unstyled">
+                    <li><i class="fas fa-check text-success"></i> Genuine {{ product.material }}</li>
+                    <li><i class="fas fa-check text-success"></i> Premium Quality</li>
+                    <li><i class="fas fa-check text-success"></i> Durable Construction</li>
+                    <li><i class="fas fa-check text-success"></i> Classic Design</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Product Description & Reviews -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" data-bs-toggle="tab" href="#description">Description</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#reviews">Reviews ({{ reviews.count }})</a>
+                </li>
+            </ul>
+            
+            <div class="tab-content p-4 border border-top-0">
+                <!-- Description Tab -->
+                <div id="description" class="tab-pane fade show active">
+                    <h4>Product Description</h4>
+                    <p>{{ product.description }}</p>
+                    
+                    <h5 class="mt-4">Care Instructions:</h5>
+                    <ul>
+                        <li>Clean with a damp cloth</li>
+                        <li>Avoid direct sunlight for extended periods</li>
+                        <li>Store in a cool, dry place</li>
+                        <li>Use leather conditioner periodically</li>
+                    </ul>
+                </div>
+                
+                <!-- Reviews Tab -->
+                <div id="reviews" class="tab-pane fade">
+                    <h4 class="mb-4">Customer Reviews</h4>
+                    
+                    <!-- Add Review Button -->
+                    {% if user.is_authenticated %}
+                    <button class="btn btn-primary mb-4" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                        Write a Review
+                    </button>
+                    {% else %}
+                    <p class="mb-4">
+                        <a href="{% url 'users:login' %}">Login</a> to write a review
+                    </p>
+                    {% endif %}
+                    
+                    <!-- Reviews List -->
+                    {% for review in reviews %}
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <h6>{{ review.user.username }}</h6>
+                                <small class="text-muted">{{ review.created_at|date:"M d, Y" }}</small>
+                            </div>
+                            <div class="mb-2">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= review.rating %}
+                                        <i class="fas fa-star text-warning"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <p class="mb-0">{{ review.comment }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-muted">No reviews yet. Be the first to review this product!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">You May Also Like</h3>
+        </div>
+        {% for product in related_products %}
+        <div class="col-md-3 mb-4">
+            <div class="card product-card border-0 shadow-sm h-100">
+                <a href="{{ product.get_absolute_url }}">
+                    {% if product.main_image %}
+                        <img src="{{ product.main_image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                    {% else %}
+                        <img src="https://via.placeholder.com/300x300?text={{ product.name }}" class="card-img-top product-image" alt="{{ product.name }}">
+                    {% endif %}
+                </a>
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="{{ product.get_absolute_url }}" class="text-decoration-none text-dark">
+                            {{ product.name }}
+                        </a>
+                    </h6>
+                    <p class="price">£{{ product.get_price }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'products:add_review' product.id %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Write a Review</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Rating</label>
+                        <select name="rating" class="form-select" required>
+                            <option value="">Choose...</option>
+                            <option value="5">5 Stars - Excellent</option>
+                            <option value="4">4 Stars - Very Good</option>
+                            <option value="3">3 Stars - Good</option>
+                            <option value="2">2 Stars - Fair</option>
+                            <option value="1">1 Star - Poor</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Your Review</label>
+                        <textarea name="comment" class="form-control" rows="4" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Submit Review</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
