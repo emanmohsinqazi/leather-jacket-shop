@@ -5,4 +5,4 @@ nixPkgs = ['python311']
 cmds = ['pip install --upgrade pip', 'pip install -r requirements.txt']
 
 [start]
-cmd = 'python manage.py migrate --noinput && python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username=\"admin\").exists() or User.objects.create_superuser(\"admin\", \"admin@ukleatherjackets.com\", \"Admin123456\")" && python manage.py collectstatic --noinput && gunicorn leather_shop.wsgi:application --bind 0.0.0.0:$PORT'
+cmd = 'python manage.py migrate --noinput && python manage.py shell -c "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username=\"ukadmin\").exists() or User.objects.create_superuser(\"ukadmin\", \"admin@ukleatherjackets.com\", \"UKLeather2026!Shop\")" && python manage.py collectstatic --noinput && gunicorn leather_shop.wsgi:application --bind 0.0.0.0:$PORT'
