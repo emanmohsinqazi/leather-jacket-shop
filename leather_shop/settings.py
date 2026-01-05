@@ -19,6 +19,12 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# CSRF Trusted Origins for Railway
+CSRF_TRUSTED_ORIGINS = [
+    'https://web-production-fce7b.up.railway.app',
+    'https://*.railway.app',
+]
+
 # Application definition
 
 INSTALLED_APPS = [
